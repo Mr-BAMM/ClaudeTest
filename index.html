@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmartTap – Share with one tap</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/tailwind.min.js"></script>
   <link rel="stylesheet" href="/fonts/fonts.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -928,52 +928,12 @@
 </footer>
 
 
-<!-- ════════════════════════════════════
-     DSGVO INFO BAR
-════════════════════════════════════ -->
-<div id="dsgvo-bar" style="
-  position:fixed;bottom:0;left:0;right:0;z-index:500;
-  background:#141626;
-  border-top:2px solid rgba(191,208,0,0.3);
-  padding:14px 20px;
-  display:flex;align-items:center;justify-content:space-between;
-  gap:14px;flex-wrap:wrap;
-  box-shadow:0 -4px 24px rgba(0,0,0,0.4);
-">
-  <p style="font-size:13px;color:rgba(248,249,244,0.68);line-height:1.55;max-width:720px;margin:0;">
-    Diese Website nutzt das <strong style="color:rgba(248,249,244,0.9);">Tailwind CSS CDN</strong>. Dabei wird deine IP-Adresse an externe Server übermittelt.
-    <a href="/datenschutz.html" style="color:var(--lime);font-weight:700;text-decoration:none;">Datenschutzerklärung</a>
-  </p>
-  <button id="dsgvo-btn" onclick="closeDsgvo()" style="
-    flex-shrink:0;background:var(--lime);color:var(--navy);
-    border:none;border-radius:8px;padding:11px 20px;min-height:44px;
-    font-family:'Outfit',sans-serif;font-weight:700;font-size:14px;
-    cursor:pointer;white-space:nowrap;
-    box-shadow:0 4px 12px rgba(191,208,0,0.3);
-  ">Verstanden</button>
-</div>
 
 
 <!-- ════════════════════════════════════
      JAVASCRIPT
 ════════════════════════════════════ -->
 <script>
-  /* ── DSGVO bar ── */
-  (function() {
-    if (localStorage.getItem('st-dsgvo') === '1') {
-      var b = document.getElementById('dsgvo-bar');
-      if (b) b.style.display = 'none';
-    }
-  })();
-  function closeDsgvo() {
-    localStorage.setItem('st-dsgvo', '1');
-    var b = document.getElementById('dsgvo-bar');
-    if (!b) return;
-    b.style.transition = 'transform 0.3s cubic-bezier(0.22,1,0.36,1), opacity 0.3s';
-    b.style.transform = 'translateY(110%)'; b.style.opacity = '0';
-    setTimeout(function() { b.style.display = 'none'; }, 320);
-  }
-
   /* ── Mobile menu ── */
   var menuOpen = false;
   function toggleMenu() {
