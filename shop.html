@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartTap Shop – NFC Schlüsselanhänger kaufen</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/fonts/fonts.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy:  #232653;
+      --black: #0c0e11;
+      --lime:  #bfd000;
+      --lime2: #d4e700;
+      --cream: #f8f9f4;
+      --muted: #6b7280;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--navy); overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+    h1, h2, h3, h4 { font-family: 'Outfit', sans-serif; }
+    img { display: block; max-width: 100%; }
+
+    /* Buttons */
+    .btn-lime {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 14px 24px; min-height: 50px; width: 100%;
+      background: var(--lime); color: var(--navy);
+      font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 15px;
+      letter-spacing: -0.01em; border-radius: 12px; border: none; cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.15), 0 8px 20px rgba(191,208,0,0.25);
+      transition: transform 0.15s cubic-bezier(0.22,1,0.36,1), box-shadow 0.15s, background 0.15s;
+    }
+    .btn-lime:hover  { transform: translateY(-2px); background: var(--lime2); box-shadow: 0 6px 0 rgba(0,0,0,0.15), 0 12px 28px rgba(191,208,0,0.35); }
+    .btn-lime:active { transform: translateY(1px); box-shadow: 0 2px 0 rgba(0,0,0,0.15); }
+    .btn-lime:focus-visible { outline: 3px solid rgba(191,208,0,0.55); outline-offset: 3px; }
+
+    .btn-navy {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 14px 24px; min-height: 50px; width: 100%;
+      background: var(--navy); color: white;
+      font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 15px;
+      border-radius: 12px; border: none; cursor: pointer; text-decoration: none;
+      box-shadow: 0 4px 14px rgba(35,38,83,0.25);
+      transition: transform 0.15s cubic-bezier(0.22,1,0.36,1), box-shadow 0.15s;
+    }
+    .btn-navy:hover  { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(35,38,83,0.35); }
+    .btn-navy:active { transform: translateY(0); }
+    .btn-navy:focus-visible { outline: 3px solid rgba(35,38,83,0.4); outline-offset: 3px; }
+
+    /* Product card */
+    .product-card {
+      background: white; border-radius: 22px;
+      border: 1px solid rgba(35,38,83,0.07);
+      box-shadow: 0 2px 10px rgba(35,38,83,0.06), 0 8px 32px rgba(35,38,83,0.04);
+      overflow: hidden;
+      display: flex; flex-direction: column;
+      transition: transform 0.25s cubic-bezier(0.22,1,0.36,1), box-shadow 0.25s;
+    }
+    .product-card:hover { transform: translateY(-7px); box-shadow: 0 12px 40px rgba(35,38,83,0.14), 0 4px 12px rgba(35,38,83,0.07); }
+    .product-card:hover .product-img { transform: scale(1.05); }
+    .product-img { transition: transform 0.4s cubic-bezier(0.22,1,0.36,1); }
+
+    /* Tag */
+    .badge { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 100px; font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+    .badge-lime { background: rgba(191,208,0,0.14); color: #5e6c00; border: 1px solid rgba(191,208,0,0.28); }
+    .badge-navy { background: rgba(35,38,83,0.08); color: var(--navy); border: 1px solid rgba(35,38,83,0.14); }
+    .badge-premium { background: linear-gradient(135deg,#232653,#3a4ba8); color: var(--lime); border: none; box-shadow: 0 4px 12px rgba(35,38,83,0.22); }
+    .badge-new { background: var(--lime); color: var(--navy); border: none; }
+
+    /* Hamburger */
+    .hamburger { display: flex; flex-direction: column; gap: 5px; cursor: pointer; padding: 8px; border-radius: 8px; border: none; background: transparent; transition: background 0.2s; }
+    .hamburger:hover { background: rgba(35,38,83,0.07); }
+    .hamburger span { display: block; width: 22px; height: 2px; background: var(--navy); border-radius: 2px; transition: transform 0.25s cubic-bezier(0.22,1,0.36,1), opacity 0.2s; }
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    #mobile-menu {
+      display: none; position: fixed; inset: 0; z-index: 190;
+      background: var(--navy); padding: 80px 32px 40px;
+      flex-direction: column; gap: 8px; overflow-y: auto;
+    }
+    #mobile-menu.open { display: flex; }
+    #mobile-menu a { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 28px; color: white; text-decoration: none; padding: 14px 0; border-bottom: 1px solid rgba(248,249,244,0.1); display: block; transition: color 0.15s; }
+    #mobile-menu a:hover { color: var(--lime); }
+
+    /* Grid */
+    .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    @media (min-width: 640px)  { .product-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; } }
+    @media (min-width: 900px)  { .product-grid { grid-template-columns: repeat(3, 1fr); gap: 24px; } }
+    @media (min-width: 1200px) { .product-grid { grid-template-columns: repeat(3, 1fr); } }
+
+    /* Nav links desktop */
+    .nav-links { display: none; }
+    @media (min-width: 768px) { .nav-links { display: flex; } .hamburger { display: none; } }
+
+    /* Nav link underline */
+    .nav-link { position: relative; text-decoration: none; transition: color 0.2s; }
+    .nav-link::after { content: ''; position: absolute; bottom: -3px; left: 0; width: 0; height: 2px; background: var(--lime); border-radius: 1px; transition: width 0.25s cubic-bezier(0.22,1,0.36,1); }
+    .nav-link:hover::after { width: 100%; }
+
+    /* Info strip */
+    .info-strip { display: flex; align-items: center; justify-content: center; gap: 28px; flex-wrap: wrap; }
+    .info-item { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: rgba(35,38,83,0.65); }
+
+    /* Grain */
+    .grain { position: relative; }
+    .grain::after { content: ''; position: absolute; inset: 0; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; border-radius: inherit; z-index: 1; }
+  </style>
+</head>
+<body>
+
+<!-- MOBILE MENU -->
+<div id="mobile-menu" role="dialog" aria-label="Navigation">
+  <a href="/" onclick="closeMenu()">← Startseite</a>
+  <a href="/shop.html" onclick="closeMenu()">Shop</a>
+  <div style="margin-top:24px;">
+    <a href="mailto:info@smarttap-offical.de" class="btn-lime" onclick="closeMenu()" style="display:flex;justify-content:center;font-size:16px;padding:16px 28px;">Jetzt bestellen</a>
+  </div>
+</div>
+
+
+<!-- NAV -->
+<nav style="position:fixed;top:0;left:0;right:0;z-index:200;height:64px;background:rgba(248,249,244,0.92);backdrop-filter:blur(18px);border-bottom:1px solid rgba(35,38,83,0.08);display:flex;align-items:center;padding:0 20px;">
+  <div style="max-width:1200px;margin:0 auto;width:100%;display:flex;align-items:center;justify-content:space-between;">
+    <a href="/" style="display:flex;align-items:center;text-decoration:none;flex-shrink:0;">
+      <img src="brand_assets/SmartTap_Logo_Transparent.png" alt="SmartTap" style="height:34px;width:auto;">
+    </a>
+    <div class="nav-links" style="align-items:center;gap:28px;">
+      <a href="/" class="nav-link" style="font-family:'Outfit',sans-serif;font-weight:500;font-size:15px;color:var(--navy);">Startseite</a>
+      <a href="/shop.html" class="nav-link" style="font-family:'Outfit',sans-serif;font-weight:700;font-size:15px;color:var(--navy);">Shop</a>
+      <a href="/#pricing" class="nav-link" style="font-family:'Outfit',sans-serif;font-weight:500;font-size:15px;color:var(--navy);">B2B Preise</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a href="mailto:info@smarttap-offical.de" class="nav-links" style="background:var(--lime);color:var(--navy);font-family:'Outfit',sans-serif;font-weight:700;font-size:14px;padding:10px 18px;border-radius:10px;text-decoration:none;min-height:40px;display:flex;align-items:center;gap:6px;box-shadow:0 3px 0 rgba(0,0,0,0.12);">
+        Anfragen
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+      <button class="hamburger" id="hamburger-btn" onclick="toggleMenu()" aria-label="Menü öffnen" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+
+<!-- HERO -->
+<section class="grain" style="background:var(--navy);padding-top:64px;padding-bottom:0;position:relative;overflow:hidden;">
+  <div style="position:absolute;inset:0;pointer-events:none;">
+    <div style="position:absolute;top:-20%;right:-5%;width:55%;height:80%;background:radial-gradient(ellipse,rgba(191,208,0,0.12) 0%,transparent 70%);"></div>
+    <div style="position:absolute;bottom:0;left:-5%;width:40%;height:55%;background:radial-gradient(ellipse,rgba(191,208,0,0.06) 0%,transparent 70%);"></div>
+  </div>
+  <div style="max-width:1200px;margin:0 auto;padding:56px 20px 72px;position:relative;z-index:2;text-align:center;">
+    <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(191,208,0,0.15);color:var(--lime);border:1px solid rgba(191,208,0,0.28);padding:6px 14px;border-radius:100px;font-family:'Outfit',sans-serif;font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:20px;">B2C Shop</span>
+    <h1 style="font-family:'Outfit',sans-serif;font-weight:900;font-size:clamp(36px,6vw,68px);line-height:1.05;letter-spacing:-0.04em;color:white;margin-bottom:14px;">
+      Dein SmartTap.<br><span style="color:var(--lime);">Jetzt kaufen.</span>
+    </h1>
+    <p style="font-size:clamp(15px,2vw,17px);line-height:1.75;color:rgba(248,249,244,0.6);max-width:420px;margin:0 auto 36px;">
+      Wähle deinen Lieblingscharakter — mit NFC-Chip, fertig bespielt. Einfach antippen und staunen.
+    </p>
+    <!-- Info pills -->
+    <div class="info-strip" style="justify-content:center;">
+      <span class="info-item" style="background:rgba(248,249,244,0.08);padding:8px 16px;border-radius:100px;color:rgba(248,249,244,0.7);border:1px solid rgba(248,249,244,0.1);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        Versand innerhalb Deutschlands
+      </span>
+      <span class="info-item" style="background:rgba(248,249,244,0.08);padding:8px 16px;border-radius:100px;color:rgba(248,249,244,0.7);border:1px solid rgba(248,249,244,0.1);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        NFC vorinstalliert
+      </span>
+      <span class="info-item" style="background:rgba(248,249,244,0.08);padding:8px 16px;border-radius:100px;color:rgba(248,249,244,0.7);border:1px solid rgba(248,249,244,0.1);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        Handgemacht in Nürnberg
+      </span>
+    </div>
+  </div>
+  <!-- Wave -->
+  <div style="height:50px;pointer-events:none;position:relative;z-index:3;">
+    <svg viewBox="0 0 1440 50" preserveAspectRatio="none" style="width:100%;height:100%;display:block;">
+      <path d="M0 50 L0 28 Q360 0 720 28 Q1080 50 1440 28 L1440 50 Z" fill="#f8f9f4"/>
+    </svg>
+  </div>
+</section>
+
+
+<!-- SHIPPING BANNER -->
+<div style="background:white;border-bottom:1px solid rgba(35,38,83,0.07);padding:14px 20px;">
+  <div style="max-width:1200px;margin:0 auto;">
+    <div class="info-strip">
+      <div class="info-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--lime)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        Versandkostenpauschale: <strong style="color:var(--navy);">3,90 €</strong>
+      </div>
+      <div class="info-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--lime)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.58 3.47 2 2 0 0 1 3.55 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.5A16 16 0 0 0 16 16.59l.88-.88a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        Bestellung via E-Mail: <strong style="color:var(--navy);">info@smarttap-offical.de</strong>
+      </div>
+      <div class="info-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--lime)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg>
+        Lieferung in <strong style="color:var(--navy);">3–5 Werktagen</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- PRODUCTS -->
+<main style="max-width:1200px;margin:0 auto;padding:52px 20px 80px;">
+
+  <!-- Section: SmartTaps (10€) -->
+  <div style="margin-bottom:48px;">
+    <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px;">
+      <h2 style="font-size:clamp(24px,3.5vw,36px);font-weight:900;letter-spacing:-0.035em;color:var(--navy);">SmartTap Charaktere</h2>
+      <span class="badge badge-lime">10,00 € zzgl. Versand</span>
+    </div>
+    <p style="font-size:15px;color:var(--muted);margin-bottom:28px;max-width:540px;">Jeder Anhänger hat einen eingebetteten NFC-Chip. Tippe mit deinem Smartphone drauf — und deine Inhalte öffnen sich sofort.</p>
+
+    <div class="product-grid">
+
+      <!-- Poker Chip -->
+      <div class="product-card">
+        <div style="aspect-ratio:1/1;overflow:hidden;background:#f0f1ec;position:relative;">
+          <img src="brand_assets/ProduktFotos/IMG_20251230_033320.jpg" alt="Poker Chip SmartTap" class="product-img" style="width:100%;height:100%;object-fit:cover;">
+          <div style="position:absolute;top:12px;left:12px;">
+            <span class="badge badge-new">Neu</span>
+          </div>
+        </div>
+        <div style="padding:20px 20px 24px;display:flex;flex-direction:column;flex:1;">
+          <div style="flex:1;">
+            <h3 style="font-size:19px;font-weight:800;color:var(--navy);letter-spacing:-0.02em;margin-bottom:5px;">Poker Chip</h3>
+            <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;">Blauer Chip mit goldenem Pik-Symbol. Perfekt für Kartenspiel-Fans.</p>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+            <div>
+              <div style="font-family:'Outfit',sans-serif;font-weight:900;font-size:24px;color:var(--navy);letter-spacing:-0.03em;line-height:1;">10,00 €</div>
+              <div style="font-size:11px;color:#9ca3af;margin-top:2px;">zzgl. 3,90 € Versand</div>
+            </div>
+            <span class="badge badge-lime">NFC</span>
+          </div>
+          <a href="mailto:info@smarttap-offical.de?subject=Bestellung%3A%20SmartTap%20Poker%20Chip&body=Hallo%2C%0A%0Aich%20m%C3%B6chte%20einen%20SmartTap%20Poker%20Chip%20bestellen%20(10%2C00%20%E2%82%AC%20%2B%20Versand).%0A%0AName%3A%20%0AAdresse%3A%20%0A%0ALG" class="btn-lime">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Jetzt bestellen
+          </a>
+        </div>
+      </div>
+
+      <!-- Dino -->
+      <div class="product-card">
+        <div style="aspect-ratio:1/1;overflow:hidden;background:#eef0e8;position:relative;">
+          <img src="brand_assets/ProduktFotos/IMG_20251230_033334.jpg" alt="Dino SmartTap" class="product-img" style="width:100%;height:100%;object-fit:cover;">
+          <div style="position:absolute;top:12px;left:12px;">
+            <span class="badge badge-lime">Beliebt</span>
+          </div>
+        </div>
+        <div style="padding:20px 20px 24px;display:flex;flex-direction:column;flex:1;">
+          <div style="flex:1;">
+            <h3 style="font-size:19px;font-weight:800;color:var(--navy);letter-spacing:-0.02em;margin-bottom:5px;">Dino</h3>
+            <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;">Süßer grüner Dinosaurier-Charakter — ein echter Hingucker am Schlüsselbund.</p>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+            <div>
+              <div style="font-family:'Outfit',sans-serif;font-weight:900;font-size:24px;color:var(--navy);letter-spacing:-0.03em;line-height:1;">10,00 €</div>
+              <div style="font-size:11px;color:#9ca3af;margin-top:2px;">zzgl. 3,90 € Versand</div>
+            </div>
+            <span class="badge badge-lime">NFC</span>
+          </div>
+          <a href="mailto:info@smarttap-offical.de?subject=Bestellung%3A%20SmartTap%20Dino&body=Hallo%2C%0A%0Aich%20m%C3%B6chte%20einen%20SmartTap%20Dino%20bestellen%20(10%2C00%20%E2%82%AC%20%2B%20Versand).%0A%0AName%3A%20%0AAdresse%3A%20%0A%0ALG" class="btn-lime">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Jetzt bestellen
+          </a>
+        </div>
+      </div>
+
+      <!-- Birdy -->
+      <div class="product-card">
+        <div style="aspect-ratio:1/1;overflow:hidden;background:#f0f1ec;position:relative;">
+          <img src="brand_assets/ProduktFotos/IMG_20251230_033423.jpg" alt="Birdy SmartTap" class="product-img" style="width:100%;height:100%;object-fit:cover;">
+        </div>
+        <div style="padding:20px 20px 24px;display:flex;flex-direction:column;flex:1;">
+          <div style="flex:1;">
+            <h3 style="font-size:19px;font-weight:800;color:var(--navy);letter-spacing:-0.02em;margin-bottom:5px;">Birdy</h3>
+            <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;">Niedlicher weißer Vogel-Charakter. Minimalistisch, kawaii und einprägsam.</p>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+            <div>
+              <div style="font-family:'Outfit',sans-serif;font-weight:900;font-size:24px;color:var(--navy);letter-spacing:-0.03em;line-height:1;">10,00 €</div>
+              <div style="font-size:11px;color:#9ca3af;margin-top:2px;">zzgl. 3,90 € Versand</div>
+            </div>
+            <span class="badge badge-lime">NFC</span>
+          </div>
+          <a href="mailto:info@smarttap-offical.de?subject=Bestellung%3A%20SmartTap%20Birdy&body=Hallo%2C%0A%0Aich%20m%C3%B6chte%20einen%20SmartTap%20Birdy%20bestellen%20(10%2C00%20%E2%82%AC%20%2B%20Versand).%0A%0AName%3A%20%0AAdresse%3A%20%0A%0ALG" class="btn-lime">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Jetzt bestellen
+          </a>
+        </div>
+      </div>
+
+      <!-- Corgi -->
+      <div class="product-card">
+        <div style="aspect-ratio:1/1;overflow:hidden;background:#f5f0e8;position:relative;">
+          <img src="brand_assets/ProduktFotos/IMG_20251230_033740.jpg" alt="Corgi SmartTap" class="product-img" style="width:100%;height:100%;object-fit:cover;">
+          <div style="position:absolute;top:12px;left:12px;">
+            <span class="badge badge-lime">Beliebt</span>
+          </div>
+        </div>
+        <div style="padding:20px 20px 24px;display:flex;flex-direction:column;flex:1;">
+          <div style="flex:1;">
+            <h3 style="font-size:19px;font-weight:800;color:var(--navy);letter-spacing:-0.02em;margin-bottom:5px;">Corgi</h3>
+            <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;">Goldfarbener Corgi-Hund — für alle Hundeliebhaber ein Must-have.</p>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+            <div>
+              <div style="font-family:'Outfit',sans-serif;font-weight:900;font-size:24px;color:var(--navy);letter-spacing:-0.03em;line-height:1;">10,00 €</div>
+              <div style="font-size:11px;color:#9ca3af;margin-top:2px;">zzgl. 3,90 € Versand</div>
+            </div>
+            <span class="badge badge-lime">NFC</span>
+          </div>
+          <a href="mailto:info@smarttap-offical.de?subject=Bestellung%3A%20SmartTap%20Corgi&body=Hallo%2C%0A%0Aich%20m%C3%B6chte%20einen%20SmartTap%20Corgi%20bestellen%20(10%2C00%20%E2%82%AC%20%2B%20Versand).%0A%0AName%3A%20%0AAdresse%3A%20%0A%0ALG" class="btn-lime">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Jetzt bestellen
+          </a>
+        </div>
+      </div>
+
+      <!-- Blaubär -->
+      <div class="product-card">
+        <div style="aspect-ratio:1/1;overflow:hidden;background:#eaecf5;position:relative;">
+          <img src="brand_assets/ProduktFotos/IMG_20251230_033207.jpg" alt="Blaubär SmartTap" class="product-img" style="width:100%;height:100%;object-fit:cover;">
+        </div>
+        <div style="padding:20px 20px 24px;display:flex;flex-direction:column;flex:1;">
+          <div style="flex:1;">
+            <h3 style="font-size:19px;font-weight:800;color:var(--navy);letter-spacing:-0.02em;margin-bottom:5px;">Blaubär</h3>
+            <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;">Blauer Teddy-Bär mit goldenem Sternchen — kuschelig und technisch zugleich.</p>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+            <div>
+              <div style="font-family:'Outfit',sans-serif;font-weight:900;font-size:24px;color:var(--navy);letter-spacing:-0.03em;line-height:1;">10,00 €</div>
+              <div style="font-size:11px;color:#9ca3af;margin-top:2px;">zzgl. 3,90 € Versand</div>
+            </div>
+            <span class="badge badge-lime">NFC</span>
+          </div>
+          <a href="mailto:info@smarttap-offical.de?subject=Bestellung%3A%20SmartTap%20Blaubaer&body=Hallo%2C%0A%0Aich%20m%C3%B6chte%20einen%20SmartTap%20Blaubaer%20bestellen%20(10%2C00%20%E2%82%AC%20%2B%20Versand).%0A%0AName%3A%20%0AAdresse%3A%20%0A%0ALG" class="btn-lime">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Jetzt bestellen
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- DIVIDER -->
+  <div style="height:2px;background:linear-gradient(to right,transparent,rgba(35,38,83,0.1),transparent);margin:12px 0 52px;"></div>
+
+
+  <!-- Section: Truth or Dare (19,90€) — FEATURED -->
+  <div>
+    <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px;">
+      <h2 style="font-size:clamp(24px,3.5vw,36px);font-weight:900;letter-spacing:-0.035em;color:var(--navy);">Truth or Dare</h2>
+      <span class="badge badge-premium">Premium · 19,90 €</span>
+    </div>
+    <p style="font-size:15px;color:var(--muted);margin-bottom:28px;max-width:540px;">Das besondere Highlight: Jeder Tap öffnet eine zufällige Truth-or-Dare-Frage. Ideal für Partys und Kennenlernrunden.</p>
+
+    <!-- Big featured card -->
+    <div class="grain" style="background:var(--navy);border-radius:28px;overflow:hidden;box-shadow:0 20px 60px rgba(35,38,83,0.25),0 6px 20px rgba(35,38,83,0.15);">
+      <div style="display:grid;grid-template-columns:1fr;position:relative;">
+
+        <!-- On desktop: two columns -->
+        <div style="display:flex;flex-direction:column-reverse;">
+
+          <!-- Image -->
+          <div style="position:relative;overflow:hidden;min-height:300px;">
+            <img src="brand_assets/ProduktFotos/IMG_20251230_033306.jpg" alt="Truth or Dare SmartTap" style="width:100%;height:100%;object-fit:cover;max-height:420px;">
+            <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(35,38,83,0.45) 0%,transparent 50%);"></div>
+          </div>
+
+          <!-- Content -->
+          <div style="padding:clamp(28px,4vw,48px);position:relative;z-index:2;">
+            <div style="position:absolute;inset:0;background:radial-gradient(ellipse at top right,rgba(191,208,0,0.1) 0%,transparent 65%);pointer-events:none;"></div>
+            <div style="position:relative;z-index:2;">
+              <span class="badge badge-premium" style="margin-bottom:18px;">★ Bestseller</span>
+              <h3 style="font-family:'Outfit',sans-serif;font-weight:900;font-size:clamp(26px,4vw,40px);color:white;letter-spacing:-0.04em;line-height:1.1;margin-bottom:14px;">Yin-Yang Truth or Dare</h3>
+              <p style="font-size:15px;line-height:1.75;color:rgba(248,249,244,0.65);margin-bottom:24px;">Der Schlüsselanhänger der die Stimmung rettet — bei jedem Tap erscheint eine neue, überraschende Frage. Klassisches Schwarz-Weiß-Design mit integriertem NFC.</p>
+              <ul style="list-style:none;padding:0;margin:0 0 28px;display:flex;flex-direction:column;gap:10px;">
+                <li style="display:flex;align-items:center;gap:10px;font-size:14px;color:rgba(248,249,244,0.8);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--lime)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg>
+                  Zufällige Fragen bei jedem Tap
+                </li>
+                <li style="display:flex;align-items:center;gap:10px;font-size:14px;color:rgba(248,249,244,0.8);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--lime)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg>
+                  Auffälliges Yin-Yang Design
+                </li>
+                <li style="display:flex;align-items:center;gap:10px;font-size:14px;color:rgba(248,249,244,0.8);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--lime)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg>
+                  Perfekt für Partys &amp; Kennenlernrunden
+                </li>
+                <li style="display:flex;align-items:center;gap:10px;font-size:14px;color:rgba(248,249,244,0.8);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--lime)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg>
+                  Funktioniert ohne App
+                </li>
+              </ul>
+              <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+                <div>
+                  <div style="font-family:'Outfit',sans-serif;font-weight:900;font-size:clamp(32px,4vw,44px);color:var(--lime);letter-spacing:-0.04em;line-height:1;">19,90 €</div>
+                  <div style="font-size:12px;color:rgba(248,249,244,0.4);margin-top:3px;">zzgl. 3,90 € Versand</div>
+                </div>
+                <a href="mailto:info@smarttap-offical.de?subject=Bestellung%3A%20Truth%20or%20Dare%20SmartTap&body=Hallo%2C%0A%0Aich%20m%C3%B6chte%20einen%20Truth%20or%20Dare%20SmartTap%20bestellen%20(19%2C90%20%E2%82%AC%20%2B%20Versand).%0A%0AName%3A%20%0AAdresse%3A%20%0A%0ALG" style="
+                  display:inline-flex;align-items:center;gap:9px;
+                  padding:16px 28px;min-height:52px;
+                  background:var(--lime);color:var(--navy);
+                  font-family:'Outfit',sans-serif;font-weight:800;font-size:16px;
+                  border-radius:14px;text-decoration:none;letter-spacing:-0.01em;
+                  box-shadow:0 6px 0 rgba(0,0,0,0.18),0 12px 28px rgba(191,208,0,0.35);
+                  transition:transform 0.15s cubic-bezier(0.22,1,0.36,1),box-shadow 0.15s;
+                "
+                onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 0 rgba(0,0,0,0.18),0 16px 36px rgba(191,208,0,0.45)';"
+                onmouseout="this.style.transform='';this.style.boxShadow='0 6px 0 rgba(0,0,0,0.18),0 12px 28px rgba(191,208,0,0.35)';">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                  Jetzt bestellen
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- FAQ / HOW TO ORDER -->
+  <div style="margin-top:64px;background:white;border-radius:22px;padding:36px;border:1px solid rgba(35,38,83,0.07);box-shadow:0 2px 12px rgba(35,38,83,0.05);">
+    <h2 style="font-size:22px;font-weight:800;color:var(--navy);letter-spacing:-0.025em;margin-bottom:22px;">So läuft die Bestellung ab</h2>
+    <div style="display:grid;grid-template-columns:1fr;gap:18px;">
+      <div style="display:flex;gap:16px;align-items:flex-start;">
+        <div style="width:36px;height:36px;background:var(--lime);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(191,208,0,0.3);">
+          <span style="font-family:'Outfit',sans-serif;font-weight:900;font-size:15px;color:var(--navy);">1</span>
+        </div>
+        <div>
+          <h4 style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:3px;">Produkt wählen &amp; E-Mail öffnen</h4>
+          <p style="font-size:13px;color:var(--muted);line-height:1.6;">Klicke auf „Jetzt bestellen" — dein E-Mail-Client öffnet sich mit einer vorausgefüllten Bestellvorlage.</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;align-items:flex-start;">
+        <div style="width:36px;height:36px;background:var(--lime);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(191,208,0,0.3);">
+          <span style="font-family:'Outfit',sans-serif;font-weight:900;font-size:15px;color:var(--navy);">2</span>
+        </div>
+        <div>
+          <h4 style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:3px;">Name &amp; Adresse ergänzen &amp; absenden</h4>
+          <p style="font-size:13px;color:var(--muted);line-height:1.6;">Trage deine Lieferadresse ein und sende die E-Mail ab — das war's schon.</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;align-items:flex-start;">
+        <div style="width:36px;height:36px;background:var(--lime);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 12px rgba(191,208,0,0.3);">
+          <span style="font-family:'Outfit',sans-serif;font-weight:900;font-size:15px;color:var(--navy);">3</span>
+        </div>
+        <div>
+          <h4 style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:3px;">Wir melden uns innerhalb von 24h</h4>
+          <p style="font-size:13px;color:var(--muted);line-height:1.6;">Du erhältst eine Bestätigung mit Zahlungsinfo per PayPal oder Banküberweisung. Lieferung in 3–5 Werktagen.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+
+<!-- FOOTER -->
+<footer style="background:var(--black);padding:32px 20px 24px;border-top:1px solid rgba(248,249,244,0.06);">
+  <div style="max-width:1200px;margin:0 auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid rgba(248,249,244,0.06);">
+      <a href="/"><img src="brand_assets/SmartTap_Logo_Transparent.png" alt="SmartTap" style="height:28px;width:auto;filter:brightness(0) invert(1);opacity:0.65;"></a>
+      <div style="display:flex;gap:16px;align-items:center;">
+        <a href="/impressum.html" style="font-size:12px;color:rgba(248,249,244,0.4);text-decoration:none;font-family:'Outfit',sans-serif;font-weight:500;min-height:44px;display:flex;align-items:center;" onmouseover="this.style.color='rgba(248,249,244,0.8)'" onmouseout="this.style.color='rgba(248,249,244,0.4)'">Impressum</a>
+        <span style="color:rgba(248,249,244,0.15);">·</span>
+        <a href="/datenschutz.html" style="font-size:12px;color:rgba(248,249,244,0.4);text-decoration:none;font-family:'Outfit',sans-serif;font-weight:500;min-height:44px;display:flex;align-items:center;" onmouseover="this.style.color='rgba(248,249,244,0.8)'" onmouseout="this.style.color='rgba(248,249,244,0.4)'">Datenschutz</a>
+      </div>
+    </div>
+    <div style="font-size:12px;color:rgba(248,249,244,0.22);text-align:center;">© 2025 SmartTap · NFC Schlüsselanhänger aus Nürnberg</div>
+  </div>
+</footer>
+
+
+<script>
+  var menuOpen = false;
+  function toggleMenu() {
+    menuOpen = !menuOpen;
+    document.getElementById('mobile-menu').classList.toggle('open', menuOpen);
+    document.getElementById('hamburger-btn').classList.toggle('open', menuOpen);
+    document.getElementById('hamburger-btn').setAttribute('aria-expanded', String(menuOpen));
+    document.body.style.overflow = menuOpen ? 'hidden' : '';
+  }
+  function closeMenu() {
+    menuOpen = false;
+    document.getElementById('mobile-menu').classList.remove('open');
+    document.getElementById('hamburger-btn').classList.remove('open');
+    document.getElementById('hamburger-btn').setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && menuOpen) closeMenu(); });
+
+  /* Desktop featured card layout */
+  function adjustFeatured() {
+    var inner = document.querySelector('.grain .grain > div > div');
+    if (!inner) return;
+    if (window.innerWidth >= 700) {
+      inner.style.flexDirection = 'row';
+    } else {
+      inner.style.flexDirection = 'column-reverse';
+    }
+  }
+</script>
+
+</body>
+</html>

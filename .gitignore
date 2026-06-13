@@ -1,0 +1,9 @@
+# Internes Dokument — nicht veröffentlichen
+brand_assets/SmartTap_Bericht.pdf
+
+# Lokaler Dev-Server
+node_modules/
+
+# OS-Dateien
+.DS_Store
+Thumbs.db
