@@ -302,10 +302,21 @@
       position: fixed; inset: 0; z-index: 9999;
       background: var(--navy);
       overflow: hidden;
+      opacity: 1;
+      filter: blur(0px);
+      /* Explicit starting circle (not "none") so the browser can actually
+         interpolate the radius below — animating from "none" to a circle()
+         can't be tweened and just snaps instantly. */
+      clip-path: circle(100% at 50% 50%);
     }
     #intro-overlay.intro-hide {
       clip-path: circle(0% at 50% 50%);
-      transition: clip-path 0.9s cubic-bezier(0.65,0,0.35,1);
+      filter: blur(18px);
+      opacity: 0;
+      transition:
+        clip-path 1.15s cubic-bezier(0.22,1,0.36,1),
+        filter 1.15s cubic-bezier(0.22,1,0.36,1),
+        opacity 0.7s ease-in 0.45s;
     }
     #intro-video {
       position: absolute; inset: 0;
@@ -350,7 +361,7 @@
     body.intro-active { overflow: hidden; height: 100svh; }
 
     @media (prefers-reduced-motion: reduce) {
-      #intro-overlay.intro-hide { transition: opacity 0.5s ease; clip-path: none; opacity: 0; }
+      #intro-overlay.intro-hide { transition: opacity 0.5s ease; clip-path: none; filter: none; opacity: 0; }
     }
 
     /* Desktop: no NFC tap moment to dramatize — skip the intro entirely */
@@ -402,7 +413,7 @@
       window.setTimeout(function () {
         overlay.style.display = 'none';
         video.pause();
-      }, 950);
+      }, 1200);
     }
 
     function showVideo() {
