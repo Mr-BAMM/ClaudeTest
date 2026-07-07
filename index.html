@@ -322,11 +322,6 @@
       transition: opacity 0.4s ease;
     }
     #intro-poster.intro-poster-hide { opacity: 0; pointer-events: none; }
-    #intro-tap-hint {
-      display: none; margin-top: 22px;
-      font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 14px;
-      letter-spacing: 0.04em; color: rgba(248,249,244,0.75); text-align: center;
-    }
     #intro-skip {
       position: absolute; right: 18px; bottom: max(18px, env(safe-area-inset-bottom));
       z-index: 2;
@@ -365,7 +360,6 @@
   <div id="intro-poster" class="grain">
     <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;">
       <img src="brand_assets/SmartTap_Logo_Transparent.png" alt="SmartTap" class="float" style="width:112px;height:auto;">
-      <span id="intro-tap-hint">Zum Starten tippen</span>
     </div>
   </div>
   <video id="intro-video" muted playsinline preload="none"></video>
@@ -1020,7 +1014,6 @@
     var poster  = document.getElementById('intro-poster');
     var video   = document.getElementById('intro-video');
     var skipBtn = document.getElementById('intro-skip');
-    var tapHint = document.getElementById('intro-tap-hint');
     var revealed = false;
 
     document.body.classList.add('intro-active');
@@ -1052,8 +1045,7 @@
     var playPromise = video.play();
     if (playPromise && typeof playPromise.catch === 'function') {
       playPromise.catch(function () {
-        /* Autoplay blocked — let the poster act as a tap-to-start prompt */
-        tapHint.style.display = 'block';
+        /* Autoplay blocked — silently let a tap anywhere on the poster start it */
         poster.addEventListener('click', function startOnTap() {
           video.play().then(showVideo).catch(reveal);
         }, { once: true });
