@@ -362,9 +362,67 @@
       <img src="brand_assets/SmartTap_Logo_Transparent.png" alt="SmartTap" class="float" style="width:112px;height:auto;">
     </div>
   </div>
-  <video id="intro-video" muted playsinline preload="none"></video>
+  <video id="intro-video" muted playsinline autoplay preload="auto">
+    <source src="brand_assets/StartVideo.mp4" media="(max-width: 767px)">
+  </video>
   <button id="intro-skip" type="button" aria-label="Intro überspringen">Überspringen</button>
 </div>
+<script>
+  /* Runs immediately here (top of body) so the video starts the instant the
+     link opens — it must not wait for the rest of the page to parse. The
+     <source media> above already keeps desktop from loading the file at all. */
+  (function () {
+    var overlay = document.getElementById('intro-overlay');
+
+    if (window.innerWidth >= 768) {
+      overlay.style.display = 'none';
+      return;
+    }
+
+    var poster  = document.getElementById('intro-poster');
+    var video   = document.getElementById('intro-video');
+    var skipBtn = document.getElementById('intro-skip');
+    var revealed = false;
+
+    document.body.classList.add('intro-active');
+
+    function reveal() {
+      if (revealed) return;
+      revealed = true;
+      overlay.classList.add('intro-hide');
+      document.body.classList.remove('intro-active');
+      window.setTimeout(function () {
+        overlay.style.display = 'none';
+        video.pause();
+      }, 950);
+    }
+
+    function showVideo() {
+      video.classList.add('intro-video-ready');
+      poster.classList.add('intro-poster-hide');
+    }
+
+    video.addEventListener('playing', showVideo, { once: true });
+    video.addEventListener('ended', reveal);
+    video.addEventListener('error', reveal);
+
+    var playPromise = video.play();
+    if (playPromise && typeof playPromise.catch === 'function') {
+      playPromise.catch(function () {
+        /* Autoplay blocked — silently let a tap anywhere on the poster start it */
+        poster.addEventListener('click', function startOnTap() {
+          video.play().then(showVideo).catch(reveal);
+        }, { once: true });
+      });
+    }
+
+    window.setTimeout(function () { skipBtn.classList.add('intro-skip-visible'); }, 500);
+    skipBtn.addEventListener('click', reveal);
+
+    /* Safety net: never trap a visitor behind a stalled intro (clip is ~4s) */
+    window.setTimeout(reveal, 9000);
+  })();
+</script>
 
 <!-- ════════════════════════════════════
      MOBILE MENU OVERLAY
@@ -1002,63 +1060,6 @@
      JAVASCRIPT
 ════════════════════════════════════ -->
 <script>
-  /* ── Intro video (mobile only — this is the NFC tap moment, PCs skip it) ── */
-  (function () {
-    var overlay = document.getElementById('intro-overlay');
-
-    if (window.innerWidth >= 768) {
-      overlay.style.display = 'none';
-      return;
-    }
-
-    var poster  = document.getElementById('intro-poster');
-    var video   = document.getElementById('intro-video');
-    var skipBtn = document.getElementById('intro-skip');
-    var revealed = false;
-
-    document.body.classList.add('intro-active');
-
-    function reveal() {
-      if (revealed) return;
-      revealed = true;
-      overlay.classList.add('intro-hide');
-      document.body.classList.remove('intro-active');
-      window.setTimeout(function () {
-        overlay.style.display = 'none';
-        video.pause();
-        video.removeAttribute('src');
-        video.load();
-      }, 950);
-    }
-
-    function showVideo() {
-      video.classList.add('intro-video-ready');
-      poster.classList.add('intro-poster-hide');
-    }
-
-    video.addEventListener('playing', showVideo, { once: true });
-    video.addEventListener('ended', reveal);
-    video.addEventListener('error', reveal);
-
-    video.src = 'brand_assets/StartVideo.mp4';
-    video.load();
-    var playPromise = video.play();
-    if (playPromise && typeof playPromise.catch === 'function') {
-      playPromise.catch(function () {
-        /* Autoplay blocked — silently let a tap anywhere on the poster start it */
-        poster.addEventListener('click', function startOnTap() {
-          video.play().then(showVideo).catch(reveal);
-        }, { once: true });
-      });
-    }
-
-    window.setTimeout(function () { skipBtn.classList.add('intro-skip-visible'); }, 500);
-    skipBtn.addEventListener('click', reveal);
-
-    /* Safety net: never trap a visitor behind a stalled intro (clip is ~4s) */
-    window.setTimeout(reveal, 9000);
-  })();
-
   /* ── Mobile menu ── */
   var menuOpen = false;
   function toggleMenu() {
