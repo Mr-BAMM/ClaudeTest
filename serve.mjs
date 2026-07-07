@@ -10,6 +10,7 @@ const mime = {
   '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript',
   '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg',
   '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.woff2': 'font/woff2',
+  '.mp4': 'video/mp4',
 };
 
 createServer(async (req, res) => {
